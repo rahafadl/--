@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>التقاط الإشارات</title>
+  <!-- Bootstrap 5 RTL -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="#">بَصير</a>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="card mx-auto" style="max-width: 480px;">
+      <div class="card-body text-center">
+        <h2 class="card-title text-primary mb-3">التقاط الإشارات</h2>
+
+        <!-- رابط لصفحة المكفوف -->
+        <a href="/blind" class="btn btn-outline-secondary mb-3">نطق الإشارات</a>
+
+        <!-- فيديو -->
+        <div class="ratio ratio-4x3 mb-3">
+          <video id="video" autoplay muted playsinline class="rounded"></video>
+        </div>
+
+        <!-- زر التقاط -->
+        <button id="captureBtn" class="btn btn-primary mb-2">التقاط</button>
+
+        <!-- الحالة والنتيجة -->
+        <p id="status" class="text-muted">اضغط على الزر لالتقاط حرفين</p>
+        <p id="result" class="display-4 text-primary"></p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bootstrap & Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const btn = document.getElementById('captureBtn');
+    const status = document.getElementById('status');
+    let seq = [];
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(s => video.srcObject = s)
+      .catch(e => alert('تعذّر الوصول إلى الكاميرا: ' + e));
+
+    btn.onclick = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg');
+
+      status.textContent = `جارٍ التعرف على الإشارة (${seq.length + 1}/2)...`;
+      fetch('/predict', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ image: dataUrl })
+      })
+      .then(r=>r.json())
+      .then(data=>{
+        const l = data.letter==='I'? 'i': data.letter;
+        seq.push(l);
+        if(seq.length<2){
+          status.textContent = `تمّ التقاط ${l}. التقط التالي.`;
+        } else {
+          window.location.href = `/blind?word=${encodeURIComponent(seq.join(''))}`;
+        }
+      })
+      .catch(e=>{
+        status.textContent = 'خطأ في التعرف: ' + e;
+      });
+    }
+  </script>
+</body>
+</html>
