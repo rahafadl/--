@@ -53,7 +53,7 @@
 - عرض الذكاء الاصطناعي كوسيلة لخدمة الوصول الشامل.
 
 ---
-
+https://drive.google.com/file/d/1EAzIl_PoQHR3UD6XtsZ1A3NPXySbk4HE/view مقطع فديو للمشروع 
 
 ---
 
